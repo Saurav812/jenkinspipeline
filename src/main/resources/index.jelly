@@ -1,4 +1,0 @@
-<?jelly escape-by-default='true'?>
-<div>
-    Allows JUnit-format test results to be published.
-</div>

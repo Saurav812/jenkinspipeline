@@ -1,25 +1,34 @@
 pipeline {
-    agent any
-    
-    stages {
-        stage ('Initialize') {
-            steps {
-                sh '''
-                    echo "PATH = ${PATH}"
-                    echo "M2_HOME = ${M2_HOME}"
-                '''
-            }
+    agent {
+        docker {
+            image 'maven:3-alpine'
+            args '-v /root/.m2:/root/.m2'
         }
-
-        stage ('Build') {
+    }
+    stages {
+        stage('Build') {
             steps {
-                sh 'mvn -Dmaven.test.failure.ignore=true install' 
+                sh 'mvn -B -DskipTests clean package'
+        }
+		}
+        stage('Test') {
+            steps {
+              sh 'mvn test'
             }
             post {
-                success {
-                    junit 'target/surefire-reports/**/*.xml' 
+                always {
+                  junit 'target/surefire-reports/*.xml'
+				  emailext attachLog: true, body: '', subject: 'Passed', to: 'sprasad.tech812@gmail.com'
                 }
+				
+				failure {
+					junit 'target/surefire-reports/*.xml'
+					emailext attachLog: true, body: '', subject: 'Failures', to: 'sprasad.tech812@gmail.com'
+				}
+
+
             }
         }
+		
     }
 }
